@@ -17,7 +17,11 @@ class TaskService:
 class TransactionService:
     @staticmethod
     def create_transaction(collector, manager, amount):
-        transaction = Transaction.objects.create(collector=collector, manager=manager, amount=amount, timestamp=timezone.now())
+        if collector is not None:
+            transaction = Transaction.objects.create(collector=collector, amount=amount, timestamp=timezone.now())
+        else:
+            transaction = Transaction.objects.create(manager=manager, amount=amount, timestamp=timezone.now())
+
         return transaction
 
 
@@ -35,7 +39,6 @@ class UserService:
         total_amount = collector.collected_transactions.filter(timestamp__range=(start_date, end_date)).aggregate(total=Sum('amount'))['total']
 
         if total_amount and total_amount >= 5000 and end_date >= start_date + timedelta(days=2):
-            print(collector.collected_transactions.all())
             # Mark the collector as frozen
             FrozenCollector.objects.get_or_create(collector=collector, frozen_since=timezone.now())
             return True
@@ -45,6 +48,11 @@ class UserService:
     @staticmethod
     def is_collector_frozen(collector):
         return FrozenCollector.objects.filter(collector=collector).exists()
+    
+    @staticmethod
+    def remove_collector_from_frozen(collector):
+        frozen_collector = FrozenCollector.objects.get(collector=collector)
+        frozen_collector.delete()  # Remove the FrozenCollector entry
 
 
 class ManagerLogService:

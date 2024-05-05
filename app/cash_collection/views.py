@@ -7,7 +7,8 @@ from .services import TaskService, TransactionService, UserService
 
 class TaskListView(APIView):
     def get(self, request, userId):
-        tasks = Task.objects.filter(completed=True)
+        collector = User.objects.get(id= userId)
+        tasks = Task.objects.filter(completed=True, collector=collector)
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
@@ -36,8 +37,12 @@ class CollectView(APIView):
         # collector = request.user  # Assuming authenticated user is the CashCollector
         collector = User.objects.get(id= userId)
 
-        TransactionService.create_transaction(collector, manager, amount)
+        if UserService.is_collector_frozen(collector):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        TransactionService.create_transaction(collector=collector,amount=amount)
         TaskService.mark_task_completed(task_id)
+        UserService.mark_collector_frozen(collector)
 
         return Response(status=status.HTTP_201_CREATED)
 
@@ -49,6 +54,10 @@ class PayView(APIView):
         manager_id = request.data.get('manager_id')
         manager = User.objects.get(id= manager_id)
 
-        TransactionService.create_transaction(collector, manager, amount)
+        TransactionService.create_transaction(manager=manager, amount=amount)
+        UserService.mark_collector_frozen(collector)
+
+        if UserService.is_collector_frozen(collector):
+            UserService.remove_collector_from_frozen(collector)
 
         return Response(status=status.HTTP_201_CREATED)

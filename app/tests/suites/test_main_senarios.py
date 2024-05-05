@@ -65,5 +65,4 @@ class TransactionTestCase(TestCase):
         self.collector.refresh_from_db()
 
         # Check if the transaction is associated with the collector
-        print(self.collector.collected_transactions.all())
         self.assertIn(transaction, self.collector.collected_transactions.all())

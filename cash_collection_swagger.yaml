@@ -75,6 +75,8 @@ paths:
       responses:
         '201':
           description: Cash collected successfully
+        '400':
+          description: Collector is frozen and cannot collect
 
   /api/{userId}/pay:
     post:
