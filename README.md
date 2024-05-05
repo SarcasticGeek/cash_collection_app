@@ -32,28 +32,43 @@ services:
 
 ```
 $ docker compose up -d
-Creating network "django_default" with the default driver
-Building web
-Step 1/6 : FROM python:3.7-alpine
-...
-...
-Status: Downloaded newer image for python:3.7-alpine
-Creating django_web_1 ... done
-
 ```
-
-## Expected result
-
-Listing containers must show one container running and the port mapping as below:
-```
-$ docker ps
-CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS              PORTS                    NAMES
-3adaea94142d        django_web          "python3 manage.py r…"   About a minute ago   Up About a minute   0.0.0.0:8000->8000/tcp   django_web_1
-```
-
 After the application starts, navigate to `http://localhost:8000` in your web browser:
 
 Stop and remove the containers
 ```
 $ docker compose down
 ```
+
+## Migrating Data
+`python manage.py migrate`
+
+## Testing
+`python manage.py test`
+
+## API spec
+`./cash_collection_swagger.yaml`
+
+## Model Structure 
+
+- User Model:
+This model represents both CashCollectors and Managers in the system.
+
+- Customer Model:
+Represents information about customers.
+
+
+- Task Model:
+Represents tasks assigned to CashCollectors, containing customer information.
+python
+
+- Transaction Model:
+Represents cash transactions between CashCollectors and Managers.
+
+- FrozenCollector Model:
+Tracks frozen CashCollectors due to holding over 5000 USD for more than 2 days.
+
+- Manager Log Model:
+Logs actions performed by Managers.
+
+These models represent the entities and relationships in your Cash Collection application. You can customize them further based on additional requirements or business logic.
