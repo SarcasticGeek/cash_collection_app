@@ -16,14 +16,27 @@ class TaskService:
 
 class TransactionService:
     @staticmethod
-    def create_transaction(collector, manager, amount):
-        if collector is not None:
-            transaction = Transaction.objects.create(collector=collector, amount=amount, timestamp=timezone.now())
-        else:
-            transaction = Transaction.objects.create(manager=manager, amount=amount, timestamp=timezone.now())
+    def create_transaction(collector = None, manager = None, amount = 0):
+        transaction = Transaction.objects.create(manager=manager, collector=collector, amount=amount, timestamp=timezone.now())
 
         return transaction
-
+    
+    @staticmethod
+    def pay_unpaid_transaction(collector = None, manager = None, amount = 0):
+        unpaid_transactions = Transaction.objects.filter(manager=manager, collector=collector, is_paid=False)
+        if unpaid_transactions.exists():
+            # Calculate the total amount of unpaid transactions
+            total_amount = unpaid_transactions.aggregate(total=Sum('amount'))['total']
+            remaining_amount = amount
+            if total_amount <= amount:
+                # Pay all unpaid transactions
+                for transaction in unpaid_transactions:
+                    if remaining_amount < transaction.amount:
+                        break
+                    transaction.is_paid = True
+                    transaction.payment_date = timezone.now()
+                    transaction.save()
+                    remaining_amount -= transaction.amount
 
 
 class UserService:
@@ -35,8 +48,8 @@ class UserService:
         # Calculate the end date (2 days from the start date)
         end_date = start_date + timedelta(days=2)
 
-        # Check if the collector has transactions exceeding 5000USD between start_date and end_date
-        total_amount = collector.collected_transactions.filter(timestamp__range=(start_date, end_date)).aggregate(total=Sum('amount'))['total']
+        # Check if the collector has unpaid transactions exceeding 5000USD between start_date and end_date
+        total_amount = collector.collected_transactions.filter(timestamp__range=(start_date, end_date), is_paid=False).aggregate(total=Sum('amount'))['total']
 
         if total_amount and total_amount >= 5000 and end_date >= start_date + timedelta(days=2):
             # Mark the collector as frozen

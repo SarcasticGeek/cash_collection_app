@@ -27,7 +27,9 @@ class Transaction(models.Model):
     collector = models.ForeignKey(User, related_name='collected_transactions', on_delete=models.CASCADE)
     manager = models.ForeignKey(User, related_name='received_transactions', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    is_paid = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=False)
+    payment_date = models.DateTimeField(auto_now_add=False)
 
     def __str__(self):
         return f"{self.collector.username} -> {self.manager.username}: ${self.amount} ,time: ${self.timestamp}"

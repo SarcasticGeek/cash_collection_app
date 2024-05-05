@@ -32,15 +32,15 @@ class CollectView(APIView):
     def post(self, request, userId):
         amount = request.data.get('amount')
         task_id = request.data.get('task_id')
-        manager_id = request.data.get('manager_id')
-        manager = User.objects.get(id= manager_id)
         # collector = request.user  # Assuming authenticated user is the CashCollector
         collector = User.objects.get(id= userId)
+        manager_id = request.data.get('manager_id')
+        manager = User.objects.get(id= manager_id)
 
         if UserService.is_collector_frozen(collector):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        TransactionService.create_transaction(collector=collector,amount=amount)
+        TransactionService.create_transaction(collector=collector, manager=manager, amount=amount)
         TaskService.mark_task_completed(task_id)
         UserService.mark_collector_frozen(collector)
 
@@ -54,7 +54,7 @@ class PayView(APIView):
         manager_id = request.data.get('manager_id')
         manager = User.objects.get(id= manager_id)
 
-        TransactionService.create_transaction(manager=manager, amount=amount)
+        TransactionService.pay_unpaid_transaction(collector=collector, manager=manager, amount=amount)
         UserService.mark_collector_frozen(collector)
 
         if UserService.is_collector_frozen(collector):
