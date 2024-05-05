@@ -14,11 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-from django.urls import path
+from django.urls import path, include
 from django.contrib import admin
-from cash_collection.views import calculate_working_days
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    path('calculate/', calculate_working_days, name='calculate_working_days'),
+    path('api/', include('cash_collection.urls')),  # Replace 'yourapp' with your app's name
 ]

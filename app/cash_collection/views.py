@@ -1,24 +1,45 @@
-from django.shortcuts import render
-from datetime import datetime, timedelta
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Task, Transaction
+from .serializers import TaskSerializer, TransactionSerializer
+from .services import TaskService, TransactionService, UserService
 
-# Create your views here.
-def calculate_working_days(request):
-    if request.method == 'POST':
-        start_date_str = request.POST.get('start_date')
-        end_date_str = request.POST.get('end_date')
-        holidays_str = request.POST.get('holidays')
+class TaskListView(APIView):
+    def get(self, request):
+        tasks = Task.objects.filter(completed=True)
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
 
-        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
-        holidays = holidays_str.split(',')
+class NextTaskView(APIView):
+    def get(self, request):
+        collector = request.user  # Assuming authenticated user is the CashCollector
+        next_task = TaskService.get_next_task_for_collector(collector)
+        serializer = TaskSerializer(next_task)
+        return Response(serializer.data)
 
-        working_days = 0
-        current_date = start_date
-        while current_date <= end_date:
-            if current_date.weekday() < 5 and current_date.strftime('%Y-%m-%d') not in holidays:
-                working_days += 1
-            current_date += timedelta(days=1)
+class CollectorStatusView(APIView):
+    def get(self, request):
+        collector = request.user  # Assuming authenticated user is the CashCollector
+        frozen = UserService.is_collector_frozen(collector)
+        return Response({'frozen': frozen})
 
-        return render(request, 'cash_collection/result.html', {'working_days': working_days})
+class CollectView(APIView):
+    def post(self, request):
+        amount = request.data.get('amount')
+        task_id = request.data.get('task_id')
+        collector = request.user  # Assuming authenticated user is the CashCollector
 
-    return render(request, 'cash_collection/calculate.html')
+        TransactionService.create_transaction(collector, amount)
+        TaskService.mark_task_completed(task_id)
+
+        return Response(status=status.HTTP_201_CREATED)
+
+class PayView(APIView):
+    def post(self, request):
+        amount = request.data.get('amount')
+        manager = request.user  # Assuming authenticated user is the Manager
+
+        TransactionService.create_transaction(manager, amount)
+
+        return Response(status=status.HTTP_201_CREATED)

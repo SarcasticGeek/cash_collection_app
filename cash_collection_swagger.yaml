@@ -1,0 +1,62 @@
+openapi: 3.0.0
+info:
+  title: Cash Collection API
+  description: RESTful API endpoints for Cash Collection application
+  version: 1.0.0
+
+paths:
+  /api/tasks/:
+    get:
+      summary: List Completed Tasks
+      responses:
+        '200':
+          description: A list of completed tasks
+
+  /api/next_task/:
+    get:
+      summary: Get Next Task
+      responses:
+        '200':
+          description: The next task for the CashCollector
+
+  /api/status/:
+    get:
+      summary: Check Collector Status
+      responses:
+        '200':
+          description: Returns true if the CashCollector is frozen
+
+  /api/collect/:
+    post:
+      summary: Collect Cash
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: Amount of cash collected
+                task_id:
+                  type: integer
+                  description: ID of the task for which cash is collected
+      responses:
+        '201':
+          description: Cash collected successfully
+
+  /api/pay/:
+    post:
+      summary: Pay Cash to Manager
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: Amount of cash to pay to the Manager
+      responses:
+        '201':
+          description: Cash paid to Manager successfully
