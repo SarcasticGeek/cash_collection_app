@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Task, Transaction
+from .models import Task, Transaction, User
 from .serializers import TaskSerializer, TransactionSerializer
 from .services import TaskService, TransactionService, UserService
 
@@ -28,9 +28,11 @@ class CollectView(APIView):
     def post(self, request):
         amount = request.data.get('amount')
         task_id = request.data.get('task_id')
+        manager_id = request.data.get('manager_id')
+        manager = User.objects.filter(id= manager_id)
         collector = request.user  # Assuming authenticated user is the CashCollector
 
-        TransactionService.create_transaction(collector, amount)
+        TransactionService.create_transaction(collector, manager, amount)
         TaskService.mark_task_completed(task_id)
 
         return Response(status=status.HTTP_201_CREATED)
@@ -38,8 +40,10 @@ class CollectView(APIView):
 class PayView(APIView):
     def post(self, request):
         amount = request.data.get('amount')
-        manager = request.user  # Assuming authenticated user is the Manager
+        collector = request.user  # Assuming authenticated user is the Manager
+        manager_id = request.data.get('manager_id')
+        manager = User.objects.filter(id= manager_id)
 
-        TransactionService.create_transaction(manager, amount)
+        TransactionService.create_transaction(collector, manager, amount)
 
         return Response(status=status.HTTP_201_CREATED)
