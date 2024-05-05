@@ -17,7 +17,7 @@ class TaskService:
 class TransactionService:
     @staticmethod
     def create_transaction(collector, manager, amount):
-        transaction = Transaction.objects.create(collector=collector, manager=manager, amount=amount)
+        transaction = Transaction.objects.create(collector=collector, manager=manager, amount=amount, timestamp=timezone.now())
         return transaction
 
 

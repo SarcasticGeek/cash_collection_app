@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.utils import timezone
 from datetime import datetime, timedelta
 from cash_collection.models import User, Customer
 from django.contrib.auth import get_user_model  # Import the custom user model
@@ -63,7 +64,7 @@ class UserServiceTestCase(TestCase):
         # collector = User.objects.create(username='test_collector')
         # manager = User.objects.create(username='test_manager')
         for _ in range(5):
-            Transaction.objects.create(collector=self.collector,manager=self.manager, amount=1000)
+            Transaction.objects.create(collector=self.collector, manager=self.manager, amount=1000, timestamp=timezone.now())
 
         # Check if the collector is marked as frozen
         UserService.mark_collector_frozen(self.collector)

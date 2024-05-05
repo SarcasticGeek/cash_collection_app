@@ -6,31 +6,35 @@ from .serializers import TaskSerializer, TransactionSerializer
 from .services import TaskService, TransactionService, UserService
 
 class TaskListView(APIView):
-    def get(self, request):
+    def get(self, request, userId):
         tasks = Task.objects.filter(completed=True)
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
 class NextTaskView(APIView):
-    def get(self, request):
-        collector = request.user  # Assuming authenticated user is the CashCollector
+    def get(self, request, userId):
+        # collector = request.user  # Assuming authenticated user is the CashCollector
+        collector = User.objects.get(id= userId)
+
         next_task = TaskService.get_next_task_for_collector(collector)
         serializer = TaskSerializer(next_task)
         return Response(serializer.data)
 
 class CollectorStatusView(APIView):
-    def get(self, request):
-        collector = request.user  # Assuming authenticated user is the CashCollector
+    def get(self, request, userId):
+        # collector = request.user  # Assuming authenticated user is the CashCollector
+        collector = User.objects.get(id= userId)
         frozen = UserService.is_collector_frozen(collector)
         return Response({'frozen': frozen})
 
 class CollectView(APIView):
-    def post(self, request):
+    def post(self, request, userId):
         amount = request.data.get('amount')
         task_id = request.data.get('task_id')
         manager_id = request.data.get('manager_id')
-        manager = User.objects.filter(id= manager_id)
-        collector = request.user  # Assuming authenticated user is the CashCollector
+        manager = User.objects.get(id= manager_id)
+        # collector = request.user  # Assuming authenticated user is the CashCollector
+        collector = User.objects.get(id= userId)
 
         TransactionService.create_transaction(collector, manager, amount)
         TaskService.mark_task_completed(task_id)
@@ -38,11 +42,12 @@ class CollectView(APIView):
         return Response(status=status.HTTP_201_CREATED)
 
 class PayView(APIView):
-    def post(self, request):
+    def post(self, request, userId):
         amount = request.data.get('amount')
-        collector = request.user  # Assuming authenticated user is the Manager
+        # collector = request.user  # Assuming authenticated user is the Manager
+        collector = User.objects.get(id= userId)
         manager_id = request.data.get('manager_id')
-        manager = User.objects.filter(id= manager_id)
+        manager = User.objects.get(id= manager_id)
 
         TransactionService.create_transaction(collector, manager, amount)
 

@@ -5,30 +5,58 @@ info:
   version: 1.0.0
 
 paths:
-  /api/tasks:
+  /api/{userId}/tasks:
     get:
       summary: List Completed Tasks
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
       responses:
         '200':
           description: A list of completed tasks
 
-  /api/next_task:
+  /api/{userId}/next_task:
     get:
       summary: Get Next Task
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
       responses:
         '200':
           description: The next task for the CashCollector
 
-  /api/status:
+  /api/{userId}/status:
     get:
       summary: Check Collector Status
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
       responses:
         '200':
           description: Returns true if the CashCollector is frozen
 
-  /api/collect:
+  /api/{userId}/collect:
     post:
       summary: Collect Cash
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -48,9 +76,16 @@ paths:
         '201':
           description: Cash collected successfully
 
-  /api/pay:
+  /api/{userId}/pay:
     post:
       summary: Pay Cash to Manager
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
       requestBody:
         content:
           application/x-www-form-urlencoded:
